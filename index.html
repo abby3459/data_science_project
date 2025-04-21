@@ -1,6 +1,690 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h1>My Awesome Project!</h1>
+    <title>Life Expectancy Analysis</title>
+    <link rel="stylesheet" href="style.css"> 
+    <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>  
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js'></script>
 
+</head>
+<body>
+
+    <header>
+        <h1>A Nation's Happiness - Quantified via Life Expectancy</h1>
+        <h3>by Abby Schultz and Mariana Ceballos</h3>
+    </header>
+
+    <main>
+        <section id="intro">
+            <h1>Introduction</h1>
+            <h3>This project will analyze the Global Development dataset from CORGIS, a collection of 6,427 observations with 25 features across 189 countries.</h3>
+                
+            <p class="big">The objective of this project is to identify the key factors that influence quality of life at a national level. Specifically, we will investigate the determinants of life expectancy within the dataset. We expect that features including infrastructure, population density, and the distribution of rural versus urban population will be significant predictors of life expectancy. This expectation stems from the understanding that infrastructure facilitates access to opportunities, population density can reflect the quality of living conditions, and the rural/urban population balance provides information about the labor force and access to essential services, all of which are potentially associated with wellbeing. </p>
+
+        </section>
+
+        <div>
+            <h1>Exploratory Analysis</h1>
+            <hr style="border: 1px solid #28b7b7;">
+            <p style="font-size: 1em;"> </p>
+        </div>
+        
+        <section id="exp-analysis">
+            
+            <h2>Data Cleaning</h2>
+
+            <p class="big">The initial exploratory data analysis involved several key steps. First, we removed the <code>Country</code> column because it did not provide unique identifying information. Next, we checked for null values (missing data) and found this dataset contained very few, most of them occurring in the the <code>mobile_cellular_subscriptions</code> and <code>mobile_cellular_subscriptions_per_ 100_people</code> columns. 
+                These gaps likely reflect the limited adoption and availability of mobile phones in the earlier time periods included in the data, so we concluded it would be appropriate to impute these missing values with 0.</p>
+
+            <p class="big">
+                We also identified 34 missing values in the <code>Rural Population</code> column. Upon closer examination, we discovered that these pertained primarily to Singapore, which consistently reported zero rural population. Our research confirmed that Singapore's rapid urbanization and economic shift have essentially eliminated officially recognized rural areas. <a href="https://www.indexmundi.com/facts/singapore/indicator/AG.LND.AGRI.ZS">Source</a>
+                Due to the missing data, we decided to exclude Singapore from the prediction data to reduce the risk of a potential outlier manipulating our models.</p>
+
+            <p class="big">After removing Singapore from the data, imputing the remaining null values with 0 and removing features that won't be used in our analysis, this is how our data is organized:</p>
+
+            <table style="width: 100%; margin: 0 auto; font-size: 1.2em; color: #333; border: 2px solid #555; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #bee8e8;">
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;"></th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">tot_pop</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">tel_lines_per_100</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">rural_population</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">population_density</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">birth_rate</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">death_rate</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">fertility_rate</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">life_expectancy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #555;">0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">24277000.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">39.562351</td>
+                        <td style="padding: 8px; border: 1px solid #555;">5918004</td>
+                        <td style="padding: 8px; border: 1px solid #555;">2.669706</td>
+                        <td style="padding: 8px; border: 1px solid #555;">15.4</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">1.754</td>
+                        <td style="padding: 8px; border: 1px solid #555;">74.866341</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #555;">1</td>
+                        <td style="padding: 8px; border: 1px solid #555;">24593000.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">40.712240</td>
+                        <td style="padding: 8px; border: 1px solid #555;">5985198</td>
+                        <td style="padding: 8px; border: 1px solid #555;">2.704456</td>
+                        <td style="padding: 8px; border: 1px solid #555;">15.4</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.1</td>
+                        <td style="padding: 8px; border: 1px solid #555;">1.740</td>
+                        <td style="padding: 8px; border: 1px solid #555;">75.078049</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #555;">2</td>
+                        <td style="padding: 8px; border: 1px solid #555;">24900000.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">41.570761</td>
+                        <td style="padding: 8px; border: 1px solid #555;">6047712</td>
+                        <td style="padding: 8px; border: 1px solid #555;">2.738217</td>
+                        <td style="padding: 8px; border: 1px solid #555;">15.3</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">1.700</td>
+                        <td style="padding: 8px; border: 1px solid #555;">75.478537</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #555;">3</td>
+                        <td style="padding: 8px; border: 1px solid #555;">25202000.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">41.320642</td>
+                        <td style="padding: 8px; border: 1px solid #555;">6080235</td>
+                        <td style="padding: 8px; border: 1px solid #555;">2.771427</td>
+                        <td style="padding: 8px; border: 1px solid #555;">15.1</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.1</td>
+                        <td style="padding: 8px; border: 1px solid #555;">1.690</td>
+                        <td style="padding: 8px; border: 1px solid #555;">75.680488</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #555;">4</td>
+                        <td style="padding: 8px; border: 1px solid #555;">25456000.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">41.429346</td>
+                        <td style="padding: 8px; border: 1px solid #555;">6100530</td>
+                        <td style="padding: 8px; border: 1px solid #555;">2.799359</td>
+                        <td style="padding: 8px; border: 1px solid #555;">15.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.0</td>
+                        <td style="padding: 8px; border: 1px solid #555;">1.680</td>
+                        <td style="padding: 8px; border: 1px solid #555;">76.036341</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+<section id="univariate">
+<h1>Univariate Analysis</h1>
+
+<h3>Distribution of the <code>population_density</code> Feature</h3>
+<div id="plotlyChart1"></div>
+<script>
+    const csvFilePath = 'global_development.csv';
+    const plotDiv1 = document.getElementById('plotlyChart1');
+
+    fetch(csvFilePath)
+        .then(response => {
+            return response.text();
+        })
+        .then(csvString => {
+            Papa.parse(csvString, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+
+                    const filteredData = results.data.filter(row => row['Data.Rural Development.Rural Population'] !== 0);
+
+                    const renamedData = filteredData.map(row => {
+                        return {
+                            pop_density: row['Data.Urban Development.Population Density'],
+                        };
+                    });
+                    const popDensities = renamedData.map(row => row.pop_density);
+                    const trace1 = {
+                        x: popDensities,
+                        type: 'box',
+                        marker: {
+                            color: '#15adad',
+                            size: 10
+                        },
+                    };
+
+                    const data = [trace1];
+                    const layout = {
+                        title: 'Urban Population Density',
+                        xaxis: {
+                            title: 'Urban Population Density (people/km2)'
+                        },
+                        height: 600,
+                        width: 1450,
+
+                    };
+
+                    const plotContainerId = 'plotlyChart1';
+                    Plotly.newPlot(plotContainerId, data, layout);
+                },
+            });
+        })
+
+</script>
+
+<p>&nbsp;</p>
+<hr style="border: 0.5px solid #ccc;">
+<p>&nbsp;</p>
+
+<h3>Distribution of the <code>birth_rate</code> Feature</h3>
+<div id="plotlyChart2"></div>
+<script>
+
+    const plotDiv2 = document.getElementById('plotlyChart2');
+
+    fetch(csvFilePath)
+        .then(response => {
+            return response.text();
+        })
+        .then(csvString => {
+            Papa.parse(csvString, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+
+                    const filteredData = results.data.filter(row => row['Data.Rural Development.Rural Population'] !== 0);
+                   
+                    const renamedData = filteredData.map(row => {
+                        return {
+                            birth_rate: row['Data.Health.Birth Rate'], 
+                            };
+                        });
+                    const birthRate = renamedData.map(row => row.birth_rate);
+
+                    const trace1 = {
+                        x: birthRate,
+                        type: 'histogram',
+                        marker: {
+                            color: 'rgba(21, 173, 173, 0.5)', 
+                            size: 10,
+                            line: {             
+                                color: '#15adad', 
+                                width: 1          
+                            }
+                        },
+                    };
+
+                    const data = [trace1];
+                    const layout = {
+                        title: {
+                            text: "Birth Rate",
+                            font: {
+                                size: "font_size",
+                                color: "font_color"
+                            },
+
+                        },
+                        height: 600,
+                        width: 1450,
+                        xaxis: {
+                            title: "Live Births per 1,000 people/year",
+                            gridcolor: "grid_color",
+                        },
+                        yaxis: {
+                            title: "Number of Occurrences"
+                        }
+                    };
+
+                    const plotContainerId = 'plotlyChart2';
+                    Plotly.newPlot(plotContainerId, data, layout);
+                },
+            });
+        })
+
+</script>
+
+<p>&nbsp;</p>
+<hr style="border: 0.5px solid #ccc;">
+<p>&nbsp;</p>
+
+<h3>Distribution of the <code>rural_population</code> Feature</h3>
+<div id="plotlyChart3"></div>
+<script>
+
+    const plotDiv3 = document.getElementById('plotlyChart3');
+
+    fetch(csvFilePath)
+        .then(response => {
+            return response.text();
+        })
+        .then(csvString => {
+            Papa.parse(csvString, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+
+                    const filteredData = results.data.filter(row => row['Data.Rural Development.Rural Population'] !== 0);
+                   
+                    const renamedData = filteredData.map(row => {
+                        return {
+                            pop_grow: row['Data.Rural Development.Rural Population Growth'], 
+                            };
+                        });
+                    const popGrow = renamedData.map(row => row.pop_grow);
+
+                    const trace1 = {
+                        y: popGrow,       
+                        type: 'density_heatmap',    
+                        marker: {
+                            color: '#15adad', 
+                            size: 10
+                        },
+                    };
+
+                    const data = [trace1];
+                    const layout = {
+                        title: {
+                            text: "Rural Population Growth",
+                            font: {
+                            size: "font_size",
+                            color: "font_color"
+                            },
+                            
+                        },
+                        height: 600,
+                        width: 1450,
+                        xaxis: {
+                            title: "Index"
+                        },
+                        yaxis: {
+                            title: "Rural Population Growth (percentage/year)",
+                            //gridcolor: "grid_color",
+                        },
+                        };
+
+                    const plotContainerId = 'plotlyChart3';
+                Plotly.newPlot(plotContainerId, data, layout);
+                },
+            });
+        })
+
+</script>
+
+<p>&nbsp;</p>
+<hr style="border: 0.5px solid #ccc;">
+<p>&nbsp;</p>
+
+<h3>Distribution of the <code>life_expectancy</code> Feature</h3>
+<div id="plotlyChart3.5"></div>
+<script>
+
+    const plotDiv3_5 = document.getElementById('plotlyChart3.5');
+
+    fetch(csvFilePath)
+        .then(response => {
+            return response.text();
+        })
+        .then(csvString => {
+            Papa.parse(csvString, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+
+                    const filteredData = results.data.filter(row => row['Data.Rural Development.Rural Population'] !== 0);
+                   
+                    const renamedData = filteredData.map(row => {
+                        return {
+                            life_exp: row['Data.Health.Life Expectancy at Birth, Total'], 
+                            };
+                        });
+                    const lifeExp = renamedData.map(row => row.life_exp);
+
+                    const trace1 = {
+                        x: lifeExp,       
+                        type: 'histogram', 
+                        marker: {
+                            color: 'rgba(21, 173, 173, 0.5)', // Translucent color
+                            size: 10,
+                            line: {              // Add a border
+                                color: '#15adad', // Border color (same as main color for subtle effect)
+                                width: 1          // Border width
+                            }
+                        },  
+                        
+                    };
+
+                    const data = [trace1];
+                    const layout = {
+                        title: {
+                            text: "Life Expectancy",
+                            font: {
+                            size: "font_size",
+                            color: "font_color"
+                            },
+                            
+                        },
+                        height: 600,
+                        width: 1450,
+                        xaxis: {
+                            title: "Life Expectancy (years)",
+                            //gridcolor: "grid_color",
+                        },
+                        yaxis: {
+                            title: "Number of Occurrences"
+                        }
+                        };
+
+                    const plotContainerId = 'plotlyChart3.5';
+                Plotly.newPlot(plotContainerId, data, layout);
+                },
+            });
+        })
+
+</script>
+</section>
+
+
+
+<section id="bivariate">
+    <h1>Bivariate Analysis</h1>
+    <h3>Birth Rate vs Fertility Rate</h3>
+    <div id="plotlyChart4"></div>
+    <script>
+        const plotDiv4 = document.getElementById('plotlyChart4');
+
+        fetch(csvFilePath)
+            .then(response => {
+                
+                return response.text(); 
+            })
+            .then(csvString => {
+                Papa.parse(csvString, {
+                    header: true,        
+                    dynamicTyping: true, 
+                    skipEmptyLines: true,
+                    complete: function(results) {
+
+                        const renamedData = results.data.map(row => {
+                            return {
+                                birth_rate: row['Data.Health.Birth Rate'], 
+                                fertility_rate: row['Data.Health.Fertility Rate'] 
+                            };
+                        });
+
+                        const birthRates = renamedData.map(row => row.birth_rate);
+                        const fertilityRates = renamedData.map(row => row.fertility_rate);
+
+                        const trace1 = {
+                            x: birthRates,
+                            y: fertilityRates,
+                            mode: 'markers', 
+                            type: 'scatter',
+                            marker: { 
+                                size: 8,
+                                color: '#15adad', 
+                                line: {
+                                  width: 0.5,
+                                  color: 'white'
+                                }
+                            },
+                            
+                        };
+
+                        const layout = {
+                            title: 'Birth Rate by Fertility Rate',
+                            xaxis: {
+                                title: 'Live Births per 1,000 people/year'
+                            },
+                            yaxis: {
+                                title: 'Births per 1,000 Women'
+                            },
+                            hovermode: 'closest', 
+                            height: 600,
+                            width: 1450
+                        };
+
+                        const plotData = [trace1]; 
+                        Plotly.newPlot(plotDiv4, plotData, layout);
+
+                    },
+                });
+            })
+
+    </script>
+
+<p>&nbsp;</p>
+<hr style="border: 0.5px solid #ccc;">
+<p>&nbsp;</p>
+
+    <h3>Telepone Lines per 100 People vs Life Expectancy</h3>
+    <div id="plotlyChart5"></div>
+    <script>
+    const plotDiv5 = document.getElementById('plotlyChart5');
+
+    fetch(csvFilePath)
+        .then(response => {
+
+            return response.text();
+        })
+        .then(csvString => {
+            Papa.parse(csvString, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+
+                    const renamedData = results.data.map(row => {
+                        let telLines = row['Data.Infrastructure.Mobile Cellular Subscriptions per 100 People'];
+                        if (telLines === null || telLines === undefined || isNaN(telLines)) {
+                            telLines = 0;
+                        }
+
+                        return {
+                            life_exp: row['Data.Health.Life Expectancy at Birth, Total'],
+                            tel_lines: telLines
+                        };
+                    });
+
+                    const lifeExp = renamedData.map(row => row.life_exp);
+                    const telLines = renamedData.map(row => row.tel_lines);
+
+                    const trace1 = {
+                        x: telLines,
+                        y: lifeExp,
+                        mode: 'markers',
+                        type: 'scatter',
+                        marker: {
+                            size: 8,
+                            color: '#15adad',
+                            line: {
+                                width: 0.5,
+                                color: 'white'
+                            }
+                        },
+                    };
+
+                    const layout = {
+                        title: 'Life Expectancy by Telepone Lines per 100 People',
+                        xaxis: {
+                            title: 'Telephone Lines per 100 People'
+                        },
+                        yaxis: {
+                            title: 'Life Expectancy (years)'
+                        },
+                        hovermode: 'closest',
+                        height: 600,
+                        width: 1450
+                    };
+
+                    const plotData = [trace1];
+                    Plotly.newPlot(plotDiv5, plotData, layout);
+
+                },
+            });
+        })
+
+</script>
+
+</section>
+
+
+<div>
+    <h1>Prediction Problem</h1>
+    <hr style="border: 1px solid #28b7b7;">
+    <p style="font-size: 1em;"> </p>
+</div>
+<section id="prediction">
+    <h3>The prediction task for this project is framed as a regression problem, where we seek to predict the 'life_expectancy' feature.</h3>
+
+    <p class="big">Recognizing that life expectancy can serve as an indicator of a nation's overall wellbeing, we are attempting to model the relationship between various factors and this outcome. Based on our data cleaning and preliminary exploration of the dataset, we anticipate that <code>tel_lines_per_100</code> (a measure of technology access), features related to the population distribution such as rural vs. urban and density, and birth rate will be particularly relevant for predicting life expectancy.</p>
+
+    <p class="big">Model performance will be assessed via test accuracy. This approach is preferred over relying solely on training accuracy, as models can overfit the training data, resulting in inflated training scores and poor performance on unseen data. Evaluating our model on a separate test set provides a more realistic assessment of its ability to generalize.</p>
+
+
+</section>
+
+<section id="base-model">
+    <h1>Baseline Model</h1>
+
+    <h3>Our baseline model uses 3 features to predict life expectancy: </h3>
+
+    <ol>
+        <li>
+          <p class="big">Rural population percentage: This feature, calculated as rural population divided by total population, represents the proportion of the population living in rural areas. We included this variable because our exploratory groupings suggested a positive correlation between birth rate and life expectancy, and we hypothesized that rural population percentage might be related to birth rates.</p>
+          <p><em>Quantitative. Calculated via a <code>FunctionTransformer</code>.</em></p>
+        </li>
+        <li>
+          <p class="big">Population density: This feature is defined as the total population divided by surface area, was selected as a feature for our baseline model. We aim to assess how strongly it correlates to life expectancy.</p>
+          <p><em>Quantitative.  Passed through the pipeline unaltered with a 'passthrough' <code>FunctionTransformer</code>.</em></p>
+        </li>
+        <li>
+          <p class="big">Telephone Lines per 100 People: We chose <code>tel_lines_per_100</code>> as a proxy for technology accessibility, as it provides a quantifiable measure of access to communication infrastructure. We hypothesize that technology accessibility is posivitely correlated to life expectancy.</p>
+          <p><em>Quantitative.  Passed through the pipeline unaltered with a 'passthrough' <code>FunctionTransformer</code>.</em></p>
+        </li>
+      </ol>
+
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+
+      <h2 style="text-align: center;">Model Results</h2>
+
+    <table style="width: 50%; margin: 0 auto; font-size: 2em; border: 1px solid black; border-collapse: collapse;">
+        <table style="width: 50%; margin: 0 auto; font-size: 1.2em; color: #333; border: 2px solid #555; border-collapse: collapse;">
+            <thead>
+              <tr style="background-color: #bee8e8;">  
+                <th style="padding: 8px; border: 1px solid #555; text-align: left;"></th> 
+                <th style="padding: 8px; border: 1px solid #555; text-align: left;">Training MSE</th> 
+                <th style="padding: 8px; border: 1px solid #555; text-align: left;">Validation MSE</th> 
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #555;">Fold 0</td> 
+                <td style="padding: 8px; border: 1px solid #555;">40.759611</td> 
+                <td style="padding: 8px; border: 1px solid #555;">39.007372</td> 
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #555;">Fold 1</td> 
+                <td style="padding: 8px; border: 1px solid #555;">40.376617</td> 
+                <td style="padding: 8px; border: 1px solid #555;">40.549943</td> 
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #555;">Fold 2</td> 
+                <td style="padding: 8px; border: 1px solid #555;">40.530343</td> 
+                <td style="padding: 8px; border: 1px solid #555;">39.964884</td> 
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #555;">Fold 3</td> 
+                <td style="padding: 8px; border: 1px solid #555;">40.221227</td> 
+                <td style="padding: 8px; border: 1px solid #555;">41.223159</td> 
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #555;">Fold 4</td> 
+                <td style="padding: 8px; border: 1px solid #555;">40.090048</td> 
+                <td style="padding: 8px; border: 1px solid #555;">41.722994</td> 
+              </tr>
+            </tbody>
+          </table>
+          <p>&nbsp;</p>
+
+      <p class="big">We consistently achieved a training MSE and validation MSE of around 40 with our baseline model, using 5 folds for cross validation. This means our model makes predictions that are 6.3 years away from the true life expectancy on average. We concluded that this error was relatively large, and aim to construct a more accurate model.</p>
+      <h3></h3>
+</section>
+
+<section id="final">
+<h1>Final Model</h1>
+
+<p class="big">
+    For our final model, we aimed to enhance our baseline model from Step 4 by incorporating new features to create a more accurate predictor. We chose to experiment with sklearn's <code>PolynomialFeatures</code> module, hypothesizing that the data may not follow a linear pattern, and would be best modeled by a polynomial equation. We also introduced some additional features to our model, as listed below:
+</p>
+
+<ol>
+    <li>
+        <p class="big">Rate of Natural Increase: We decided that rate of natural increase (RNI) has potential as a good additional feature, which is defined as birth rate - death rate. RNI serves as an indicator of population fluctuations without including the effects of migration to/from a country. <a href="https://docmckee.com/oer/soc/sociology-glossary/rate-of-natural-increase-definition/#google_vignette">Definition</a></p> 
+    </li>
+    <li>
+      <p class="big">Standardized Population: We are curious to determine if a standardized total population feature could be useful in our final model, as the raw values of <code>total_population</code> are very large. Standardizing helps to prevent <code>total_population</code> from dominating other features due to its scale.</p> 
+    </li>
+    <li>
+        <p class="big">Fertility Rate: Another feature we introduced was <code>fertility_rate</code>, which is defined as the number of live births divided by the female population labeled as 'fertile'. Intuitively, a higher fertility rate would be associated with a potential for a higher life expectancy, since regions with higher fertility may also invest more in healthcare for their citizens.</p> 
+    </li>
+  </ol>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+<h2 style="text-align: center;">Model Results</h2>
+
+<table style="width: 50%; margin: 0 auto; font-size: 1.2em; color: #333; border: 2px solid #555; border-collapse: collapse;">
+    <thead>
+      <tr style="background-color: #bee8e8;">  
+        <th style="padding: 8px; border: 1px solid #555; text-align: left;"></th> 
+        <th style="padding: 8px; border: 1px solid #555; text-align: left;">Training MSE</th> 
+        <th style="padding: 8px; border: 1px solid #555; text-align: left;">Validation MSE</th> 
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #555;">Results</td> 
+        <td style="padding: 8px; border: 1px solid #555;">7.079275</td> 
+        <td style="padding: 8px; border: 1px solid #555;">7.041261</td> 
+      </tr>
+      
+    </tbody>
+  </table>
+  <p>&nbsp;</p>
+
+  <p class="big">After some experimenting with the <code>degree</code> hyperparameter for our <code>PolynomialFeatures</code> module, we determined that the ideal value (ie. the value that minimizes the mean squared error) is degree 3.</p>
+
+  <p class="big">Introducing these new features has resulted in our training MSE decreasing to approximately 7.04. This means our final model's predictions are off by an average of 2.65 years, which is over a 50% reduction in error from our baseline model's error of about 6.3 years. 
+    
+    For reference, the standard deviation of the life expectancy variable is about 10.6. Our model's MSE is much smaller than the standard deviation of the training data, which means our model is successfully capturing the nuances and variation of the data, allowing it to make predictions as accurate as possible.</p>
+
+</section>
+   
+    </main>
+
+    <footer>
+        <p>Created by Abby Schultz and Mariana Ceballos, 2025</p>
+        <p>Page maintained by <a href="https://github.com/abby3459" style="color: white;">abby3459</a>. <a href="https://github.com/abby3459/global_life_expectancy_analysis" style="color: white;">View models on Github</a></p>
+    </footer>
+
+</body>
 </html>
