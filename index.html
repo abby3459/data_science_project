@@ -40,7 +40,7 @@
                 These gaps likely reflect the limited adoption and availability of mobile phones in the earlier time periods included in the data, so we concluded it would be appropriate to impute these missing values with 0.</p>
 
             <p class="big">
-                We also identified 34 missing values in the <code>Rural Population</code> column. Upon closer examination, we discovered that these pertained primarily to Singapore, which consistently reported zero rural population. Our research confirmed that Singapore's rapid urbanization and economic shift have essentially eliminated officially recognized rural areas. <a href="https://www.indexmundi.com/facts/singapore/indicator/AG.LND.AGRI.ZS">Source</a>
+                We also identified 34 missing values in the <code>rural_population</code> column. Upon closer examination, we discovered that these pertained primarily to Singapore, which consistently reported zero rural population. Our research confirmed that Singapore's rapid urbanization and economic shift have essentially eliminated officially recognized rural areas. <a href="https://www.indexmundi.com/facts/singapore/indicator/AG.LND.AGRI.ZS">Source</a>
                 Due to the missing data, we decided to exclude Singapore from the prediction data to reduce the risk of a potential outlier manipulating our models.</p>
 
             <p class="big">After removing Singapore from the data, imputing the remaining null values with 0 and removing features that won't be used in our analysis, this is how our data is organized:</p>
@@ -57,6 +57,8 @@
                         <th style="padding: 8px; border: 1px solid #555; text-align: left;">death_rate</th>
                         <th style="padding: 8px; border: 1px solid #555; text-align: left;">fertility_rate</th>
                         <th style="padding: 8px; border: 1px solid #555; text-align: left;">life_expectancy</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">arable_land_perc</th>
+                        <th style="padding: 8px; border: 1px solid #555; text-align: left;">agr_land_perc</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,6 +72,8 @@
                         <td style="padding: 8px; border: 1px solid #555;">7.0</td>
                         <td style="padding: 8px; border: 1px solid #555;">1.754</td>
                         <td style="padding: 8px; border: 1px solid #555;">74.866341</td>
+                        <td style="padding: 8px; border: 1px solid #555;">4.879744</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.357225</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #555;">1</td>
@@ -81,6 +85,8 @@
                         <td style="padding: 8px; border: 1px solid #555;">7.1</td>
                         <td style="padding: 8px; border: 1px solid #555;">1.740</td>
                         <td style="padding: 8px; border: 1px solid #555;">75.078049</td>
+                        <td style="padding: 8px; border: 1px solid #555;">4.918123</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.301471</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #555;">2</td>
@@ -92,6 +98,8 @@
                         <td style="padding: 8px; border: 1px solid #555;">7.0</td>
                         <td style="padding: 8px; border: 1px solid #555;">1.700</td>
                         <td style="padding: 8px; border: 1px solid #555;">75.478537</td>
+                        <td style="padding: 8px; border: 1px solid #555;">4.956502</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.245717</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #555;">3</td>
@@ -103,6 +111,8 @@
                         <td style="padding: 8px; border: 1px solid #555;">7.1</td>
                         <td style="padding: 8px; border: 1px solid #555;">1.690</td>
                         <td style="padding: 8px; border: 1px solid #555;">75.680488</td>
+                        <td style="padding: 8px; border: 1px solid #555;">4.960241</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.288275</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #555;">4</td>
@@ -114,8 +124,12 @@
                         <td style="padding: 8px; border: 1px solid #555;">7.0</td>
                         <td style="padding: 8px; border: 1px solid #555;">1.680</td>
                         <td style="padding: 8px; border: 1px solid #555;">76.036341</td>
+                        <td style="padding: 8px; border: 1px solid #555;">4.963870</td>
+                        <td style="padding: 8px; border: 1px solid #555;">7.330943</td>
                     </tr>
                     <tr>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
+                        <td style="padding: 8px; border: 1px solid #555;">...</td>
                         <td style="padding: 8px; border: 1px solid #555;">...</td>
                         <td style="padding: 8px; border: 1px solid #555;">...</td>
                         <td style="padding: 8px; border: 1px solid #555;">...</td>
@@ -133,67 +147,10 @@
 <section id="univariate">
 <h1>Univariate Analysis</h1>
 
-<h3>Distribution of the <code>population_density</code> Feature</h3>
-<div id="plotlyChart1"></div>
-<script>
-    const csvFilePath = 'global_development.csv';
-    const plotDiv1 = document.getElementById('plotlyChart1');
-
-    fetch(csvFilePath)
-        .then(response => {
-            return response.text();
-        })
-        .then(csvString => {
-            Papa.parse(csvString, {
-                header: true,
-                dynamicTyping: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-
-                    const filteredData = results.data.filter(row => row['Data.Rural Development.Rural Population'] !== 0);
-
-                    const renamedData = filteredData.map(row => {
-                        return {
-                            pop_density: row['Data.Urban Development.Population Density'],
-                        };
-                    });
-                    const popDensities = renamedData.map(row => row.pop_density);
-                    const trace1 = {
-                        x: popDensities,
-                        type: 'box',
-                        marker: {
-                            color: '#15adad',
-                            size: 10
-                        },
-                    };
-
-                    const data = [trace1];
-                    const layout = {
-                        title: 'Urban Population Density',
-                        xaxis: {
-                            title: 'Urban Population Density (people/km2)'
-                        },
-                        height: 600,
-                        width: 1450,
-
-                    };
-
-                    const plotContainerId = 'plotlyChart1';
-                    Plotly.newPlot(plotContainerId, data, layout);
-                },
-            });
-        })
-
-</script>
-
-<p>&nbsp;</p>
-<hr style="border: 0.5px solid #ccc;">
-<p>&nbsp;</p>
-
 <h3>Distribution of the <code>birth_rate</code> Feature</h3>
 <div id="plotlyChart2"></div>
 <script>
-
+    const csvFilePath = 'global_development.csv';
     const plotDiv2 = document.getElementById('plotlyChart2');
 
     fetch(csvFilePath)
@@ -258,75 +215,8 @@
 
 </script>
 
-<p>&nbsp;</p>
-<hr style="border: 0.5px solid #ccc;">
-<p>&nbsp;</p>
+<p class="big">Birth rate is multimodal, with several peaks throughout its distribution. This can be owing to features such as varying fertility inclinations and disparities in healthcare/accessibility, which we will explore in depth during our analysis.</p>
 
-<h3>Distribution of the <code>rural_population</code> Feature</h3>
-<div id="plotlyChart3"></div>
-<script>
-
-    const plotDiv3 = document.getElementById('plotlyChart3');
-
-    fetch(csvFilePath)
-        .then(response => {
-            return response.text();
-        })
-        .then(csvString => {
-            Papa.parse(csvString, {
-                header: true,
-                dynamicTyping: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-
-                    const filteredData = results.data.filter(row => row['Data.Rural Development.Rural Population'] !== 0);
-                   
-                    const renamedData = filteredData.map(row => {
-                        return {
-                            pop_grow: row['Data.Rural Development.Rural Population Growth'], 
-                            };
-                        });
-                    const popGrow = renamedData.map(row => row.pop_grow);
-
-                    const trace1 = {
-                        y: popGrow,       
-                        type: 'density_heatmap',    
-                        marker: {
-                            color: '#15adad', 
-                            size: 10
-                        },
-                    };
-
-                    const data = [trace1];
-                    const layout = {
-                        title: {
-                            text: "Rural Population Growth",
-                            font: {
-                            size: "font_size",
-                            color: "font_color"
-                            },
-                            
-                        },
-                        height: 600,
-                        width: 1450,
-                        xaxis: {
-                            title: "Index"
-                        },
-                        yaxis: {
-                            title: "Rural Population Growth (percentage/year)",
-                            //gridcolor: "grid_color",
-                        },
-                        };
-
-                    const plotContainerId = 'plotlyChart3';
-                Plotly.newPlot(plotContainerId, data, layout);
-                },
-            });
-        })
-
-</script>
-
-<p>&nbsp;</p>
 <hr style="border: 0.5px solid #ccc;">
 <p>&nbsp;</p>
 
@@ -398,13 +288,12 @@
         })
 
 </script>
+<p class="big">Life expectancy is skewed left, as the mortality rate generally increases as people get older. We see several fluctuations and even a slight trough as values approach the mean of 64.7 years, implying that a multitude of factors can affect the variable we are attemtping to predict.</p>
 </section>
-
-
 
 <section id="bivariate">
     <h1>Bivariate Analysis</h1>
-    <h3>Birth Rate vs Fertility Rate</h3>
+    <h3>Arable Land vs Agricultural Land</h3>
     <div id="plotlyChart4"></div>
     <script>
         const plotDiv4 = document.getElementById('plotlyChart4');
@@ -423,17 +312,17 @@
 
                         const renamedData = results.data.map(row => {
                             return {
-                                birth_rate: row['Data.Health.Birth Rate'], 
-                                fertility_rate: row['Data.Health.Fertility Rate'] 
+                                ar_land: row['Data.Rural Development.Arable Land Percent'], 
+                                ag_land: row['Data.Rural Development.Agricultural Land Percent'] 
                             };
                         });
 
-                        const birthRates = renamedData.map(row => row.birth_rate);
-                        const fertilityRates = renamedData.map(row => row.fertility_rate);
+                        const arLand = renamedData.map(row => row.ar_land);
+                        const agLand = renamedData.map(row => row.ag_land);
 
                         const trace1 = {
-                            x: birthRates,
-                            y: fertilityRates,
+                            x: arLand,
+                            y: agLand,
                             mode: 'markers', 
                             type: 'scatter',
                             marker: { 
@@ -448,12 +337,12 @@
                         };
 
                         const layout = {
-                            title: 'Birth Rate by Fertility Rate',
+                            title: 'Arable Land vs Agricultural Land',
                             xaxis: {
-                                title: 'Live Births per 1,000 people/year'
+                                title: 'Arable Land (percent)'
                             },
                             yaxis: {
-                                title: 'Births per 1,000 Women'
+                                title: 'Agricultural Land (percent)'
                             },
                             hovermode: 'closest', 
                             height: 600,
@@ -469,7 +358,7 @@
 
     </script>
 
-<p>&nbsp;</p>
+<p class="big">Arable land and agricultural land percentage also exhibit a positive correlation. The higher the percentage of a country's land that is arable (suitable for growing crops), the higher the percentage of their land that is used for agricultural purposes, demonstrating the impact that geographical factors can have on a country's economy.</p>
 <hr style="border: 0.5px solid #ccc;">
 <p>&nbsp;</p>
 
@@ -541,7 +430,7 @@
         })
 
 </script>
-
+<p class="big">As visualized in the graph above, the <code>life_expectancy</code> and <code>tel_lines_per_100</code> features have a substantial correlation of about 0.71. This provides support to our intuition that technology accessibility is positively correlated with life expectancy. This can be explained by cutting edge healthcare technology and resources being probably more likely to prolong lifespan.</p>
 </section>
 
 
